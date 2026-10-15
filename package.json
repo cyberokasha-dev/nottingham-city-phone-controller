@@ -1,0 +1,6 @@
+{
+  "name": "nottingham-city-phone-controller",
+  "private": true,
+  "scripts": {"test": "node tests/controller.cjs"},
+  "devDependencies": {"playwright": "1.62.1"}
+}

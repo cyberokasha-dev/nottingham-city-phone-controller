@@ -20,3 +20,26 @@ QR scanning inside the page requires HTTPS and browser support for `BarcodeDetec
 
 ## GitHub Pages
 In this repository, open Settings → Pages and choose Deploy from a branch, branch `main`, folder `/(root)`. After deployment, the controller URL should be `https://cyberokasha-dev.github.io/nottingham-city-phone-controller/`.
+
+## Live city menus
+
+Pair with the updated browser game, then use **Phone / rides**, **Map**,
+**Characters** and **Camera** above the gamepad. The phone displays the game's live
+menu controls. Type a passenger name or search, choose a destination, call a cab or
+helicopter, board, cancel or skip through the same validated actions as the desktop
+UI. Housing, jobs, money, graphics, sound, conversation replies and on-board Quran
+controls are mirrored when visible. Map taps select the actual city location;
+drag to pan and use + / − to zoom. Character selection uses the four existing party
+members and their normal restrictions. **More** includes call, skip, flight height,
+fold arms and cancel activity.
+
+Driving mode and button labels now follow the active game character. Quick button
+presses are sent immediately, commands use an ordered reliable channel, and switching
+away from the controller releases held buttons. The controller menu does not pause
+the city. This connection requires the **browser game**, not Linux Godot.
+
+`npm ci`, `npx playwright install chromium`, `npm test` run the browser UI/protocol
+regressions using a mock paired peer and game-menu fixtures. Actual game booking,
+fares, map projection and character actions are checked in the game's
+`tests/remote_menu.gd`. Two physical devices are still needed to verify real pairing
+and mobile keyboard behaviour on a particular phone.

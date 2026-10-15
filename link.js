@@ -4,7 +4,9 @@
   var TIMEOUT_MS = 15000;
   var peer = null, conn = null, timer = null, sender = null;
   var state = { x: 0, y: 0, b: {}, lx: 0, ly: 0, cc: 0 };
-  var last = '', lastSent = 0;
+  var last = '', lastSent = 0, sequence = 0;
+  window.NottController = { command: function (data) { if (!conn || !conn.open) return; conn.send(Object.assign({}, data, {t:'cmd', seq:++sequence})); } };
+  function linkEvent(up) { window.dispatchEvent(new CustomEvent('nott-link', {detail:up})); }
 
   function setError(text) { $('error').textContent = text || ''; }
   function badge(text, ok) {
@@ -23,10 +25,13 @@
   function cleanup() {
     clearTimeout(timer);
     clearInterval(sender);
+    state.b = {}; state.x = 0; state.y = 0; state.lx = 0; state.ly = 0;
+    last = ""; sequence = 0; linkEvent(false);
     sender = null;
-    try { if (conn) conn.close(); } catch (e) {}
-    try { if (peer) peer.destroy(); } catch (e) {}
+    var oldConn = conn, oldPeer = peer;
     conn = null; peer = null;
+    try { if (oldConn) oldConn.close(); } catch (e) {}
+    try { if (oldPeer) oldPeer.destroy(); } catch (e) {}
   }
   function failed(message) {
     cleanup();
@@ -61,14 +66,17 @@
       failed(t === 'peer-unavailable' ? 'No game found with that code. Check it and try again.' : 'Connection problem (' + (t || 'unknown') + '). Try again.');
     });
     peer.on('open', function () {
-      conn = peer.connect('nottcity-' + code, { reliable: false, serialization: 'json' });
+      conn = peer.connect('nottcity-' + code, { reliable: true, serialization: 'json' });
       conn.on('data', function (d) {
         if (!d) return;
-        if (d.t === 'ready') {
+        if (d.t === 'ui' || d.t === 'atlas') {
+          window.dispatchEvent(new CustomEvent('nott-ui', {detail:d}));
+        } else if (d.t === 'ready') {
           clearTimeout(timer);
           $('pair').disabled = false;
           $('connectModal').classList.add('hidden');
           badge('Connected', true);
+          linkEvent(true);
           send(true);
           sender = setInterval(function () { send(false); }, 33);
         } else if (d.t === 'busy') {
@@ -104,8 +112,8 @@
 
   document.querySelectorAll('[data-control]').forEach(function (el) {
     var name = el.dataset.control;
-    el.addEventListener('pointerdown', function () { state.b[name] = true; });
-    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (n) { el.addEventListener(n, function () { delete state.b[name]; }); });
+    el.addEventListener('pointerdown', function () { state.b[name] = true; send(true); });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (n) { el.addEventListener(n, function () { delete state.b[name]; send(true); }); });
   });
 
   var cam = $('camera'), cx = 0, cy = 0, cp = null, tapAt = 0, moved = 0;
@@ -127,7 +135,9 @@
   }
   ['pointerup', 'pointercancel'].forEach(function (n) { cam.addEventListener(n, camEnd); });
 
-  addEventListener('blur', function () { state.b = {}; stickEnd(); });
+  function release() { state.b = {}; stickEnd(); state.lx = 0; state.ly = 0; send(true); }
+  addEventListener('blur', release);
+  document.addEventListener('visibilitychange', function () { if (document.hidden) release(); });
 
   // Opened from the game's QR code: ?code=ABC123
   var match = location.search.match(/[?&]code=([A-Za-z0-9-]{4,12})/);
