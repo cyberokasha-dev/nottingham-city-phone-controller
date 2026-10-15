@@ -88,7 +88,7 @@
   canvas.onpointercancel=()=>{start=null;};
   window.addEventListener('nott-ui',e=>{
     const data=e.detail;if(data.t==='atlas'){atlas=new Image();atlas.onload=drawMap;atlas.src=data.image;return;}
-    if(data.t!=='ui')return;model=data;
+    if(data.t!=='ui')return;const contextChanged=data.context!==lastContext;model=data;
     const driving=data.mode==='Driving';if(drive!==driving){drive=driving;window.dispatchEvent(new CustomEvent('nott-driving',{detail:driving}));}
     $('mode').textContent=data.character+' · '+data.mode;
     const captions={TRIANGLE:data.mode.includes('passenger')?'Stop / exit':'Interact',SQUARE:'Jump',CIRCLE:'Punch',CROSS:driving?'Handbrake':'Run',L1:'Guard',R1:'Heavy',L2:'Reverse',R2:'Accelerate'};
@@ -97,7 +97,7 @@
     if(data.context==='play'&&lastContext!=='play'&&lastContext!=='')sheet.classList.add('hidden');
     lastContext=data.context;title.textContent={phone:'City phone',map:'City map',characters:'Choose character',conversation:'Conversation',play:'Game controls'}[data.context]||'Game controls';
     status.textContent=data.character+' · '+data.mode+'\n'+data.prompt;
-    mapBox.classList.toggle('hidden',data.context!=='map');renderRows(data.rows||[]);drawMap();
+    mapBox.classList.toggle('hidden',data.context!=='map');renderRows(data.rows||[]);drawMap();if(contextChanged)sheet.scrollTop=0;
   });
   window.addEventListener('nott-link',e=>{
     connected=e.detail;bar.querySelectorAll('button').forEach(b=>b.disabled=!connected&&b.dataset.command!=='more');
