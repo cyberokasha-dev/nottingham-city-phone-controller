@@ -38,3 +38,23 @@ commands, direction presses and rapid face-button taps are sent. The game reposi
 also tests these commands inside a real exported Godot browser build, including
 helicopter booking, cancellation and character switching. Real two-device WebRTC
 pairing still needs checking on the player's devices.
+
+
+### Screen selection
+
+Tap **Screen cursor** to point at the actual game screen. Move with the stick or
+swipe the central touchpad; Cross or a touchpad tap selects its button. This reaches
+ride speed, Aurora manual/self-drive controls, phone apps and the map. **Return to
+play** closes game menus and restores movement; release the stick/buttons first.
+Circle still goes back one step at a time.
+
+Without cursor mode, the direction pad moves the game's blue focus outline. Cross
+opens a visible destination/property/job list, up/down browses it, Cross confirms,
+and L1/R1 jump ten items. Lists stay on the game screen. Selecting a search or code
+field brings up one keyboard field on the controller; Send to game updates only
+that field. During cursor mode L1/R1 scroll the phone, and on the map they zoom.
+
+Labels follow gameplay, menus, lists and cursor mode automatically. Disconnecting,
+switching away from the app or losing a touch releases held controls. Automated
+browser checks use a simulated pairing transport; physical two-device connection
+quality still depends on the devices and network.
