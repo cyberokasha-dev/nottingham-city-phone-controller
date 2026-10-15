@@ -5,7 +5,7 @@
   var peer = null, conn = null, timer = null, sender = null;
   var state = { x: 0, y: 0, b: {}, lx: 0, ly: 0, cc: 0 };
   var last = '', lastSent = 0, sequence = 0, context='play', cursorMode=false, pendingPointer={x:0,y:0};
-  window.NottController = { command: function (data) { if (!conn || !conn.open) return; sendNeutral();conn.send(Object.assign({}, data, {t:'cmd', seq:++sequence})); } };
+  window.NottController = { command: function (data) { if (!conn || !conn.open) return; if(['phone','map','characters','screen','play','back','text_input'].includes(data.action))sendNeutral();conn.send(Object.assign({}, data, {t:'cmd', seq:++sequence})); } };
   function sendNeutral(){state.b={};state.x=0;state.y=0;state.lx=0;state.ly=0;pendingPointer={x:0,y:0};send(true);}
   function linkEvent(up) { window.dispatchEvent(new CustomEvent('nott-link', {detail:up})); }
 
