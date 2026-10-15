@@ -21,25 +21,20 @@ QR scanning inside the page requires HTTPS and browser support for `BarcodeDetec
 ## GitHub Pages
 In this repository, open Settings → Pages and choose Deploy from a branch, branch `main`, folder `/(root)`. After deployment, the controller URL should be `https://cyberokasha-dev.github.io/nottingham-city-phone-controller/`.
 
-## Live city menus
+## Gamepad controls and game-screen menus
 
-Pair with the updated browser game, then use **Phone / rides**, **Map**,
-**Characters** and **Camera** above the gamepad. The phone displays the game's live
-menu controls. Type a passenger name or search, choose a destination, call a cab or
-helicopter, board, cancel or skip through the same validated actions as the desktop
-UI. Housing, jobs, money, graphics, sound, conversation replies and on-board Quran
-controls are mirrored when visible. Map taps select the actual city location;
-drag to pan and use + / − to zoom. Character selection uses the four existing party
-members and their normal restrictions. **More** includes call, skip, flight height,
-fold arms and cancel activity.
+The phone stays a controller. Phone, Map and Characters open on the **game screen**;
+no booking forms, map copy or character list appears on the controller. Use the stick
+or direction pad to move through menus, × to confirm, ○ to go back and L1/R1 to
+change phone tabs or zoom the map. Left/right changes destination lists. Camera stays
+on its own button. Menu mode blocks movement and combat.
 
-Driving mode and button labels now follow the active game character. Quick button
-presses are sent immediately, commands use an ordered reliable channel, and switching
-away from the controller releases held buttons. The controller menu does not pause
-the city. This connection requires the **browser game**, not Linux Godot.
+The game phone offers Call helicopter and Call Aurora with the active character name
+already filled in. A destination is optional at pickup; use the in-game map or the
+location list to choose it. Normal distance and fare checks still apply.
 
-`npm ci`, `npx playwright install chromium`, `npm test` run the browser UI/protocol
-regressions using a mock paired peer and game-menu fixtures. Actual game booking,
-fares, map projection and character actions are checked in the game's
-`tests/remote_menu.gd`. Two physical devices are still needed to verify real pairing
-and mobile keyboard behaviour on a particular phone.
+Browser tests verify that game menus do not appear on the phone and that menu
+commands, direction presses and rapid face-button taps are sent. The game repository
+also tests these commands inside a real exported Godot browser build, including
+helicopter booking, cancellation and character switching. Real two-device WebRTC
+pairing still needs checking on the player's devices.
