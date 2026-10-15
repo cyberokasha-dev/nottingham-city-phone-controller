@@ -20,3 +20,32 @@ body.driving-mode .stick{border-color:#2b9fff;background:radial-gradient(circle,
  .square{top:24%}.circle{top:40%}
  .camera{left:29%;right:29%}
 }
+
+
+/* PlayStation-style face-button diamond: triangle top, square left, circle right, cross bottom. */
+.actions{
+  width:clamp(260px,24vw,330px);
+  height:clamp(240px,38vh,290px);
+  right:2.5%;
+  bottom:7%;
+}
+.actions button{
+  width:clamp(76px,8vw,96px);
+  height:clamp(76px,8vw,96px);
+  font-size:clamp(36px,4.5vw,48px);
+}
+.triangle{top:0;left:50%;right:auto;transform:translateX(-50%)}
+.square{top:50%;left:0;transform:translateY(-50%)}
+.circle{top:50%;right:0;transform:translateY(-50%)}
+.cross{bottom:0;left:50%;transform:translateX(-50%)}
+.triangle:active{transform:translateX(-50%) scale(.95)}
+.square:active,.circle:active{transform:translateY(-50%) scale(.95)}
+.cross:active{transform:translateX(-50%) scale(.95)}
+@media(max-height:430px){
+  .actions{width:min(30vw,300px);height:min(42vh,250px);right:2%;bottom:5%}
+  .actions button{width:min(9vw,20vh);height:min(9vw,20vh);font-size:min(5vw,10vh)}
+  .triangle{top:0;left:50%;right:auto}
+  .square{top:50%;left:0}
+  .circle{top:50%;right:0}
+  .cross{bottom:0;left:50%}
+}
