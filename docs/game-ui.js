@@ -21,7 +21,7 @@
   const apply=document.createElement('button');apply.type='submit';apply.textContent='Send to game';
   const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel';cancel.onclick=()=>send('back');
   editor.append(label,input,apply,cancel);document.body.appendChild(editor);
-  editor.onsubmit=e=>{e.preventDefault();send('text_input',input.value,{id:entryId});};
+  editor.onsubmit=e=>{e.preventDefault();send('text_input',input.value,{id:entryId});if(input.type==='password')input.value='';};
   input.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();send('back');}};
   function render(){
     const menu=context!=='play',point=context==='screen',list=context==='list';
@@ -40,9 +40,9 @@
   }
   window.addEventListener('nott-ui',e=>{
     const d=e.detail;if(d.t!=='ui')return;
-    context=d.context||'play';screen=!!d.screen;screenAvailable=Number(d.version)>=4;
+    context=d.context||'play';if(context!=='text'&&input.type==='password')input.value='';screen=!!d.screen;screenAvailable=Number(d.version)>=4;
     driving=d.mode==='Driving';
-    if(d.entry&&d.entry.id!==entryId){entryId=d.entry.id;label.textContent=d.entry.label||'Type for the game';input.value=d.entry.value||'';input.maxLength=Math.min(256,d.entry.max||256);setTimeout(()=>input.focus(),0);}
+    if(d.entry&&d.entry.id!==entryId){entryId=d.entry.id;label.textContent=d.entry.label||'Type for the game';input.type=d.entry.secret?'password':'text';input.value=d.entry.secret?'':d.entry.value||'';input.maxLength=Math.min(256,d.entry.max||256);setTimeout(()=>input.focus(),0);}
     render();
   });
   window.addEventListener('nott-link',e=>{connected=!!e.detail;bar.querySelectorAll('button').forEach(b=>b.disabled=!connected);pad.querySelectorAll('button').forEach(b=>b.disabled=!connected);if(!connected){stop();context='play';screen=false;entryId=null;render();}});

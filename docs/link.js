@@ -2,10 +2,10 @@
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var TIMEOUT_MS = 15000;
-  var peer = null, conn = null, timer = null, sender = null;
+  var peer = null, conn = null, timer = null, sender = null, linked = false, connectionGeneration=0;
   var state = { x: 0, y: 0, b: {}, lx: 0, ly: 0, cc: 0 };
   var last = '', lastSent = 0, sequence = 0, context='play', cursorMode=false, pendingPointer={x:0,y:0};
-  window.NottController = { command: function (data) { if (!conn || !conn.open) return; if(['phone','map','characters','screen','play','back','text_input'].includes(data.action))sendNeutral();conn.send(Object.assign({}, data, {t:'cmd', seq:++sequence})); } };
+  window.NottController = { command: function (data) { if (!linked || !conn || !conn.open) return; if(['phone','map','characters','screen','play','back','text_input'].includes(data.action))sendNeutral();conn.send(Object.assign({}, data, {t:'cmd', seq:++sequence})); } };
   function sendNeutral(){state.b={};state.x=0;state.y=0;state.lx=0;state.ly=0;pendingPointer={x:0,y:0};send(true);}
   function linkEvent(up) { window.dispatchEvent(new CustomEvent('nott-link', {detail:up})); }
 
@@ -24,6 +24,7 @@
     b.style.color = ok ? '#6cdfa1' : '#ffd37a';
   }
   function cleanup() {
+    connectionGeneration++;linked=false;
     clearTimeout(timer);
     clearInterval(sender);
     state.b = {}; state.x = 0; state.y = 0; state.lx = 0; state.ly = 0;
@@ -42,7 +43,7 @@
     $('pair').disabled = false;
   }
   function send(force) {
-    if (!conn || !conn.open) return;
+    if (!linked || !conn || !conn.open) return;
     if(pendingPointer.x||pendingPointer.y){
       var dx=Math.max(-.25,Math.min(.25,pendingPointer.x)),dy=Math.max(-.25,Math.min(.25,pendingPointer.y));pendingPointer.x-=dx;pendingPointer.y-=dy;
       try{conn.send({t:'cmd',seq:++sequence,action:'pointer_move',x:dx,y:dy});}catch(e){}
@@ -58,8 +59,20 @@
       state.lx = 0; state.ly = 0;
     }
   }
-  function connect(code) {
+  async function connect(code) {
     cleanup();
+    const attempt=connectionGeneration;
+    $('pair').disabled=true;
+    code=String(code).toUpperCase().replace(/[\s-]/g,'');
+    const privateCode=code.length===16;
+    if(privateCode&&!/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{16}$/.test(code)){failed('Check your sixteen-character private city code.');return;}
+    if(!privateCode&&!/^[A-Z0-9]{6}$/.test(code)){failed('Enter a six-character pairing code or your private city code.');return;}
+    let peerId='nottcity-'+code;
+    if(privateCode){
+      if(!crypto.subtle){failed('Private-code pairing needs a secure HTTPS connection.');return;}
+      try{const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(code));peerId='nottcity-account-'+Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');}catch{failed('Could not prepare private-code pairing.');return;}
+    }
+    if(attempt!==connectionGeneration)return;
     setError('');
     $('pair').disabled = true;
     badge('Connecting...', false);
@@ -71,13 +84,21 @@
       failed(t === 'peer-unavailable' ? 'No game found with that code. Check it and try again.' : 'Connection problem (' + (t || 'unknown') + '). Try again.');
     });
     peer.on('open', function () {
-      conn = peer.connect('nottcity-' + code, { reliable: true, serialization: 'json' });
-      conn.on('data', function (d) {
-        if (!d) return;
-        if (d.t === 'ui' || d.t === 'atlas') {
+      conn = peer.connect(peerId, { reliable: true, serialization: 'json' });
+      const channel=conn;
+      conn.on('data', async function (d) {
+        if (!d||conn!==channel) return;
+        if(d.t==='challenge'&&privateCode&&/^[a-f0-9]{48}$/.test(d.nonce)){
+          try{const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(code),{name:'HMAC',hash:'SHA-256'},false,['sign']);const signed=await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(d.nonce));if(conn===channel)channel.send({t:'proof',proof:Array.from(new Uint8Array(signed),b=>b.toString(16).padStart(2,'0')).join('')});}catch{failed('Private-code authentication failed.');}
+          return;
+        }
+        if(d.t==='denied'){failed('Private city code was not accepted.');return;}
+        if ((d.t === 'ui' || d.t === 'atlas')&&linked) {
           if(d.t==='ui'){const next=d.context||'play';if(next!==context)sendNeutral();context=next;cursorMode=context==='screen';}
           window.dispatchEvent(new CustomEvent('nott-ui', {detail:d}));
-        } else if (d.t === 'ready') {
+        } else if (d.t === 'ready'&&!linked) {
+          linked=true;
+          if(privateCode)$('code').value='';
           clearTimeout(timer);
           $('pair').disabled = false;
           $('connectModal').classList.add('hidden');
@@ -95,7 +116,7 @@
   }
 
   $('pair').onclick = function () {
-    var code = $('code').value.trim().toUpperCase();
+    var code = $('code').value.trim().toUpperCase().replace(/[\s-]/g,'');
     if (code.length < 4) { setError('Enter the pairing code shown by your game.'); return; }
     connect(code);
   };
@@ -153,7 +174,7 @@
   document.addEventListener('visibilitychange', function () { if (document.hidden) release(); });
 
   // Opened from the game's QR code: ?code=ABC123
-  var match = location.search.match(/[?&]code=([A-Za-z0-9-]{4,12})/);
+  var match = location.search.match(/[?&]code=([A-Za-z0-9-]{6})(?:&|$)/);
   badge('Not connected', false);
   if (match) {
     $('code').value = match[1].toUpperCase();

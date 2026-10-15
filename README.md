@@ -58,3 +58,7 @@ Labels follow gameplay, menus, lists and cursor mode automatically. Disconnectin
 switching away from the app or losing a touch releases held controls. Automated
 browser checks use a simulated pairing transport; physical two-device connection
 quality still depends on the devices and network.
+
+## Private city code pairing
+
+The Connect box accepts the temporary six-character game pairing code or the private sixteen-character city code from Account. Open **Phone controller** in the running browser game first. Private pairing uses a SHA-256-derived peer ID and a fresh HMAC challenge; the secret never appears in the controller URL or QR code, and no input is sent until authentication succeeds. Secret game fields use a masked keyboard entry and clear after submission. The root and `docs/` controller assets are kept identical.
