@@ -1,4 +1,4 @@
-name: Build Android test APK
+name: Build and publish Android controller
 
 on:
   push:
@@ -8,10 +8,16 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: controller-apk-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-apk:
-    name: Build installable test APK
+    name: Build and publish installable APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -32,13 +38,44 @@ jobs:
         with:
           packages: 'platform-tools'
 
-      - name: Build debug APK
+      - name: Keep the test signing key between builds
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: controller-test-signing-v1
+
+      - name: Build APK
         run: gradle --no-daemon assembleDebug
 
-      - name: Upload APK for phone testing
+      - name: Prepare direct download
+        run: |
+          mkdir -p release
+          cp app/build/outputs/apk/debug/app-debug.apk release/Nottingham-City-Controller.apk
+          cd release
+          sha256sum Nottingham-City-Controller.apk > Nottingham-City-Controller.apk.sha256
+
+      - name: Save APK build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Nottingham-City-Controller-test-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: Nottingham-City-Controller-APK
+          path: release/*
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
+
+      - name: Publish permanent APK download
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: controller-${{ github.run_number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" release/* --clobber
+            gh release edit "$RELEASE_TAG" --latest
+          else
+            gh release create "$RELEASE_TAG" release/* \
+              --target "$GITHUB_SHA" --latest \
+              --title "Nottingham City Controller ${GITHUB_RUN_NUMBER}" \
+              --notes-file release-notes.md
+          fi

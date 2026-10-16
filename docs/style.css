@@ -86,3 +86,5 @@ body.driving-mode .stick{border-color:#2b9fff;background:radial-gradient(circle,
   .field > .actions{width:min(27vw,270px) !important;height:min(42vh,240px) !important;right:2% !important;bottom:5% !important}
   .field > .actions > button{width:min(8.5vw,19vh) !important;height:min(8.5vw,19vh) !important;font-size:min(4.8vw,9vh) !important}
 }
+
+.apk-download{display:block;margin-top:16px;padding:13px 16px;border:1px solid #50b6ff;border-radius:12px;text-align:center;background:#123e60;color:#f0f8ff;font:700 15px system-ui,sans-serif;text-decoration:none;touch-action:manipulation}.apk-download:focus-visible{outline:3px solid #fff;outline-offset:3px}

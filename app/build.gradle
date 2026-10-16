@@ -10,7 +10,7 @@ android {
         applicationId 'uk.co.nottinghamcity.controller'
         minSdk 23
         targetSdk 28
-        versionCode 1
-        versionName '0.1-test'
+        versionCode providers.environmentVariable('GITHUB_RUN_NUMBER').orElse('1').get().toInteger()
+        versionName '0.2.' + providers.environmentVariable('GITHUB_RUN_NUMBER').orElse('local').get()
     }
 }

@@ -1,5 +1,10 @@
 # Nottingham City Phone Controller
 
+[Open the web controller](https://cyberokasha-dev.github.io/nottingham-city-phone-controller/) · [Download Android APK](https://github.com/cyberokasha-dev/nottingham-city-phone-controller/releases/latest/download/Nottingham-City-Controller.apk) · [All APK releases](https://github.com/cyberokasha-dev/nottingham-city-phone-controller/releases)
+
+Download **Nottingham-City-Controller.apk**, open it on Android and allow installation if asked. APKs are published as permanent release downloads after successful builds; the Actions source-code and artifact ZIPs are not the app installer. The same download button is in the controller's Pause menu and Settings.
+
+
 A mobile-first landscape phone controller for the browser game. This repository is separate from `cyberokasha-dev/Nottingham-city`.
 
 ## Included

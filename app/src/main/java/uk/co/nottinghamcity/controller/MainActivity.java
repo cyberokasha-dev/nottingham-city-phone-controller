@@ -1,6 +1,9 @@
 package uk.co.nottinghamcity.controller;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
+import android.webkit.WebResourceRequest;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -29,7 +32,21 @@ public class MainActivity extends Activity {
         settings.setSupportZoom(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                Uri uri = request.getUrl();
+                if ("https".equals(uri.getScheme()) && "github.com".equals(uri.getHost())) {
+                    startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                    return true;
+                }
+                return false;
+            }
+        });
+        webView.setDownloadListener((url, userAgent, disposition, mimeType, size) -> {
+            Uri uri = Uri.parse(url);
+            if ("https".equals(uri.getScheme())) startActivity(new Intent(Intent.ACTION_VIEW, uri));
+        });
         webView.setWebChromeClient(new WebChromeClient());
         setContentView(webView);
         webView.loadUrl(CONTROLLER_URL);
