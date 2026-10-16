@@ -11,7 +11,7 @@
 .triangle:active{transform:scale(.95)}
 .cross:active{transform:translateX(-50%) scale(.95)}
 .camera{left:28%;right:28%}
-.wheel{transform-origin:50% 50%;transition:transform 65ms linear;width:80%;height:80%;color:#168fff;pointer-events:none;filter:drop-shadow(0 0 8px #168fff33)}
+#stick .wheel{margin:0;position:absolute;left:10%;top:10%;transform-origin:50% 50%;transition:transform 65ms linear;width:80%;height:80%;color:#168fff;pointer-events:none;filter:drop-shadow(0 0 8px #168fff33)}
 body.driving-mode .stick{border-color:#2b9fff;background:radial-gradient(circle,#102b42,#061321 72%)}
 @media(max-height:430px){
  .stick-area{width:min(30vw,43vh);left:2%;bottom:12%}

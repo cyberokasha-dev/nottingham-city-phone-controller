@@ -13,6 +13,7 @@ await page.getByRole('button',{name:'Map',exact:true}).click();await page.getByR
 await page.evaluate(()=>window.connection.handlers.data({t:'ui',version:4,context:'play',mode:'Driving',character:'Musa'}));assert(await page.locator('body').evaluate(el=>el.classList.contains('driving-mode')));
 // Wheel graphics must follow the same analog value sent to the game.
 const stick=await page.locator('#stick').boundingBox(),sx=stick.x+stick.width/2,sy=stick.y+stick.height/2;
+const wheelBox=await page.locator('.wheel').boundingBox();assert(Math.abs(wheelBox.x+wheelBox.width/2-sx)<1&&Math.abs(wheelBox.y+wheelBox.height/2-sy)<1,'the rotating wheel is centred inside the steering touch target');
 const angle=()=>page.locator('.wheel').evaluate(el=>parseFloat(el.style.transform.match(/rotate\(([-.0-9]+)deg\)/)[1]));
 await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+stick.width*.29,sy);await page.waitForTimeout(80);
 assert(await angle()>125,'right steering visibly rotates clockwise');assert(await page.evaluate(()=>window.sent.some(p=>p.t==='s'&&p.x>.9)),'the rotated wheel still sends right steering');
