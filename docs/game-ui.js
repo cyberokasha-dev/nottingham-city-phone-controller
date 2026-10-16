@@ -45,7 +45,7 @@
     if(d.entry&&d.entry.id!==entryId){entryId=d.entry.id;label.textContent=d.entry.label||'Type for the game';input.type=d.entry.secret?'password':'text';input.value=d.entry.secret?'':d.entry.value||'';input.maxLength=Math.min(256,d.entry.max||256);setTimeout(()=>input.focus(),0);}
     render();
   });
-  window.addEventListener('nott-link',e=>{connected=!!e.detail;bar.querySelectorAll('button').forEach(b=>b.disabled=!connected);pad.querySelectorAll('button').forEach(b=>b.disabled=!connected);if(!connected){stop();context='play';screen=false;entryId=null;render();}});
+  window.addEventListener('nott-link',e=>{connected=!!e.detail;bar.querySelectorAll('button').forEach(b=>b.disabled=!connected);pad.querySelectorAll('button').forEach(b=>b.disabled=!connected);if(!connected){stop();driving=false;context='play';screen=false;entryId=null;render();}});
   new MutationObserver(()=>{if(document.querySelector('.shade:not(.hidden)'))stop();}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class']});
   window.addEventListener('blur',stop);document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
   window.dispatchEvent(new CustomEvent('nott-link',{detail:false}));render();

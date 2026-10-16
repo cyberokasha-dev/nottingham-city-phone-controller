@@ -11,6 +11,20 @@ await page.getByRole('button',{name:'Menu down',exact:true}).click();assert(awai
 await page.locator('[data-control="CROSS"]').click();assert(await page.evaluate(()=>window.sent.some(p=>p.t==='s'&&p.b.includes('CROSS'))));
 await page.getByRole('button',{name:'Map',exact:true}).click();await page.getByRole('button',{name:'Characters',exact:true}).click();assert(await page.evaluate(()=>window.sent.some(p=>p.action==='map')&&window.sent.some(p=>p.action==='characters')));
 await page.evaluate(()=>window.connection.handlers.data({t:'ui',version:4,context:'play',mode:'Driving',character:'Musa'}));assert(await page.locator('body').evaluate(el=>el.classList.contains('driving-mode')));
+// Wheel graphics must follow the same analog value sent to the game.
+const stick=await page.locator('#stick').boundingBox(),sx=stick.x+stick.width/2,sy=stick.y+stick.height/2;
+const angle=()=>page.locator('.wheel').evaluate(el=>parseFloat(el.style.transform.match(/rotate\(([-.0-9]+)deg\)/)[1]));
+await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+stick.width*.29,sy);await page.waitForTimeout(80);
+assert(await angle()>125,'right steering visibly rotates clockwise');assert(await page.evaluate(()=>window.sent.some(p=>p.t==='s'&&p.x>.9)),'the rotated wheel still sends right steering');
+await page.mouse.move(sx-stick.width*.29,sy);await page.waitForTimeout(80);assert(await angle()<-125,'left steering visibly rotates anticlockwise');
+await page.mouse.up();assert.equal(await angle(),0,'wheel recentres on release');
+await page.locator('#stick').dispatchEvent('pointerdown',{pointerId:18,clientX:sx+stick.width*.2,clientY:sy});
+await page.locator('#stick').dispatchEvent('pointercancel',{pointerId:18});assert.equal(await angle(),0,'cancelled touches release steering');
+await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+stick.width*.2,sy);await page.evaluate(()=>window.dispatchEvent(new Event('blur')));assert.equal(await angle(),0,'losing focus releases steering');await page.mouse.up();
+// Ordinary driving status updates and changing camera must preserve steering.
+await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+stick.width*.2,sy);
+await page.evaluate(()=>window.connection.handlers.data({t:'ui',version:4,context:'play',mode:'Driving'}));assert(await angle()>80,'status updates preserve held steering');
+await page.evaluate(()=>window.NottController.command({action:'camera'}));assert(await angle()>80,'camera changes preserve held steering');await page.mouse.up();
 await page.getByRole('button',{name:'Screen cursor',exact:true}).click();assert(await page.evaluate(()=>window.sent.some(p=>p.action==='screen')));
 await page.evaluate(()=>window.connection.handlers.data({t:'ui',version:4,context:'screen',screen:true,mode:'Driving',character:'Musa'}));assert(await page.locator('body').evaluate(el=>el.classList.contains('screen-cursor-mode')&&!el.classList.contains('driving-mode')));
 const pad=await page.locator('#camera').boundingBox();await page.mouse.move(pad.x+pad.width*.3,pad.y+pad.height*.5);await page.mouse.down();await page.mouse.move(pad.x+pad.width*.7,pad.y+pad.height*.6,{steps:4});await page.mouse.up();await page.waitForTimeout(80);assert(await page.evaluate(()=>window.sent.some(p=>p.action==='pointer_move'&&p.x>0)),'touchpad must move game cursor rather than the camera');

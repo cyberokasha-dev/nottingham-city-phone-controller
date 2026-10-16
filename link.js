@@ -6,7 +6,8 @@
   var state = { x: 0, y: 0, b: {}, lx: 0, ly: 0, cc: 0 };
   var last = '', lastSent = 0, sequence = 0, context='play', cursorMode=false, pendingPointer={x:0,y:0};
   window.NottController = { command: function (data) { if (!linked || !conn || !conn.open) return; if(['phone','map','characters','screen','play','back','text_input'].includes(data.action))sendNeutral();conn.send(Object.assign({}, data, {t:'cmd', seq:++sequence})); } };
-  function sendNeutral(){state.b={};state.x=0;state.y=0;state.lx=0;state.ly=0;pendingPointer={x:0,y:0};send(true);}
+  function showStick(){window.dispatchEvent(new CustomEvent('nott-stick',{detail:{x:state.x,y:state.y}}));}
+  function sendNeutral(){state.b={};state.x=0;state.y=0;state.lx=0;state.ly=0;pendingPointer={x:0,y:0};showStick();send(true);}
   function linkEvent(up) { window.dispatchEvent(new CustomEvent('nott-link', {detail:up})); }
 
   function setError(text) { $('error').textContent = text || ''; }
@@ -28,7 +29,7 @@
     clearTimeout(timer);
     clearInterval(sender);
     state.b = {}; state.x = 0; state.y = 0; state.lx = 0; state.ly = 0;
-    last = ""; sequence = 0; linkEvent(false);
+    last = ""; sequence = 0; showStick(); linkEvent(false);
     sender = null;context='play';cursorMode=false;pendingPointer={x:0,y:0};
     var oldConn = conn, oldPeer = peer;
     conn = null; peer = null;
@@ -127,15 +128,15 @@
   function locallyBlocked(){return !!document.querySelector('.shade:not(.hidden),.game-text-entry:not(.hidden)');}
   new MutationObserver(()=>{if(locallyBlocked())sendNeutral();}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class']});
   function stickMove(e) {
-    if(locallyBlocked()){state.x=0;state.y=0;return;}
+    if(locallyBlocked()){state.x=0;state.y=0;showStick();return;}
     var r = ring.getBoundingClientRect();
     var max = r.width * 0.29;
     var dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
     var len = Math.hypot(dx, dy);
     if (len > max) { dx = dx / len * max; dy = dy / len * max; }
-    state.x = dx / max; state.y = dy / max;
+    state.x = dx / max; state.y = dy / max; showStick();
   }
-  function stickEnd() { pid = null; state.x = 0; state.y = 0; send(true); }
+  function stickEnd() { pid = null; state.x = 0; state.y = 0; showStick(); send(true); }
   ring.addEventListener('pointerdown', function (e) { pid = e.pointerId; stickMove(e); });
   ring.addEventListener('pointermove', function (e) { if (pid === e.pointerId) stickMove(e); });
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (n) { ring.addEventListener(n, stickEnd); });
