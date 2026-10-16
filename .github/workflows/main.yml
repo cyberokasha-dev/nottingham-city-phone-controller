@@ -45,7 +45,17 @@ jobs:
           key: controller-test-signing-v1
 
       - name: Build APK
-        run: gradle --no-daemon assembleDebug
+        run: |
+          set -euo pipefail
+          gradle --no-daemon assembleDebug
+          python3 - <<'PYAPK'
+          import zipfile
+          with zipfile.ZipFile('app/build/outputs/apk/debug/app-debug.apk') as apk:
+              for name in ['index.html', 'app.js', 'link.js', 'game-ui.js', 'style.css', 'game-ui.css', 'vendor/peerjs.min.js']:
+                  assert len(apk.read('assets/controller/' + name)) > 100, name
+              assert b'vendor/peerjs.min.js' in apk.read('assets/controller/index.html')
+          print('APK contains the complete controller and local networking library')
+          PYAPK
 
       - name: Prepare direct download
         run: |

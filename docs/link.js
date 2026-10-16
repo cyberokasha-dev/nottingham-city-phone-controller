@@ -136,8 +136,8 @@
     if (len > max) { dx = dx / len * max; dy = dy / len * max; }
     state.x = dx / max; state.y = dy / max; showStick();
   }
-  function stickEnd() { pid = null; state.x = 0; state.y = 0; showStick(); send(true); }
-  ring.addEventListener('pointerdown', function (e) { pid = e.pointerId; stickMove(e); });
+  function stickEnd(e) { if(e&&e.pointerId!==pid)return;pid = null; state.x = 0; state.y = 0; showStick(); send(true); }
+  ring.addEventListener('pointerdown', function (e) { if(pid!==null||locallyBlocked())return;e.preventDefault();pid=e.pointerId;try{ring.setPointerCapture(pid);}catch{}stickMove(e);send(true); });
   ring.addEventListener('pointermove', function (e) { if (pid === e.pointerId) stickMove(e); });
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (n) { ring.addEventListener(n, stickEnd); });
 
@@ -172,6 +172,8 @@
 
   function release() { state.b = {}; cp=null;pendingPointer={x:0,y:0};stickEnd();state.lx=0;state.ly=0;send(true); }
   addEventListener('blur', release);
+  addEventListener('resize',release);
+  addEventListener('pagehide',release);
   document.addEventListener('visibilitychange', function () { if (document.hidden) release(); });
 
   // Opened from the game's QR code: ?code=ABC123

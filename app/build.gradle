@@ -11,6 +11,17 @@ android {
         minSdk 23
         targetSdk 28
         versionCode providers.environmentVariable('GITHUB_RUN_NUMBER').orElse('1').get().toInteger()
-        versionName '0.2.' + providers.environmentVariable('GITHUB_RUN_NUMBER').orElse('local').get()
+        versionName '0.3.' + providers.environmentVariable('GITHUB_RUN_NUMBER').orElse('local').get()
     }
 }
+
+// The APK contains the same tested controller as Pages, including its PeerJS runtime.
+def controllerAssets = tasks.register('controllerAssets', Sync) {
+    from(rootProject.projectDir) {
+        include 'index.html', 'app.js', 'link.js', 'game-ui.js', 'style.css', 'game-ui.css', 'vendor/**'
+    }
+    into(layout.buildDirectory.dir('generated/controllerAssets/controller'))
+}
+android.sourceSets.main.assets.srcDir(layout.buildDirectory.dir('generated/controllerAssets'))
+tasks.named('preBuild').configure { dependsOn(controllerAssets) }
+dependencies { implementation 'androidx.webkit:webkit:1.12.1' }

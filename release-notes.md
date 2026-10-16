@@ -1,5 +1,3 @@
-Install **Nottingham-City-Controller.apk** below on Android, or use the [web controller](https://cyberokasha-dev.github.io/nottingham-city-phone-controller/).
+Install **Nottingham-City-Controller.apk** below on Android. This is the controller app, with its interface and networking library bundled inside the APK. It opens independently of the website; connecting to a game still needs the internet.
 
-The Android app opens the same controller in a landscape, full-screen window. The steering wheel turns with your input, and Phone, Map, Jobs, Book and Rents work on the game screen.
-
-Download the APK itself; you do not need the source-code ZIP or a GitHub Actions artifact. Your browser may ask you to allow installing this test app. Play the [game](https://cyberokasha-dev.github.io/Nottingham-city/) on your other screen, then pair using its controller code.
+The steering wheel follows touch input, including steering while holding the accelerator. Supports portrait and landscape. Open the web controller instead at https://cyberokasha-dev.github.io/nottingham-city-phone-controller/.

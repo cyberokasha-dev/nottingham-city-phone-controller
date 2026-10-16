@@ -40,4 +40,31 @@ await page.locator('#settingsOpen').click();
 const apk=page.locator('#settingsModal .apk-download');assert(await apk.isVisible());
 assert.equal(await apk.getAttribute('href'),'https://github.com/cyberokasha-dev/nottingham-city-phone-controller/releases/latest/download/Nottingham-City-Controller.apk');
 await page.locator('[data-close=settingsModal]').click();await page.locator('#pauseOpen').click();assert(await page.locator('#pauseModal .apk-download').isVisible());
+// Real multitouch events, not mouse input, must steer while the accelerator is held.
+const phone=await b.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true,deviceScaleFactor:1});
+const mobile=await phone.newPage();mobile.on('pageerror',e=>errors.push(e.message));
+await mobile.route('**/peerjs.min.js',r=>r.fulfill({contentType:'text/javascript',body:peer}));
+await mobile.goto('http://127.0.0.1:'+server.address().port+'/?code=TEST12');
+await mobile.waitForFunction(()=>window.sent?.length>0);
+assert(await mobile.locator('.top .apk-link').isVisible(),'APK download is available without opening settings');
+await mobile.evaluate(()=>window.connection.handlers.data({t:'ui',version:4,context:'play',mode:'Driving'}));
+const cdp=await phone.newCDPSession(mobile);
+const rect=await mobile.locator('#stick').boundingBox(),pedal=await mobile.locator('[data-control=R2]').boundingBox();
+const a={id:1,x:rect.x+rect.width/2,y:rect.y+rect.height/2},ped={id:2,x:pedal.x+pedal.width/2,y:pedal.y+pedal.height/2};
+const touch=async(type,touchPoints)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints});
+await touch('touchStart',[a]);await touch('touchStart',[a,ped]);
+a.x+=rect.width*.27;await touch('touchMove',[a,ped]);await mobile.waitForTimeout(100);
+assert(await mobile.locator('.wheel').evaluate(el=>parseFloat(el.style.transform.match(/[-.0-9]+/)[0])>110),'real finger drag rotates the steering wheel');
+assert(await mobile.evaluate(()=>window.sent.some(p=>p.t==='s'&&p.x>.8&&p.b.includes('R2'))),'steering and accelerator reach the game together');
+await touch('touchEnd',[ped]);await mobile.waitForTimeout(60);
+assert(await mobile.locator('.wheel').evaluate(el=>parseFloat(el.style.transform.match(/[-.0-9]+/)[0])>110),'releasing the pedal does not recenter a held wheel');
+await touch('touchEnd',[]);await mobile.waitForTimeout(60);
+assert.equal(await mobile.locator('.wheel').evaluate(el=>el.style.transform),'rotate(0deg)');
+await mobile.setViewportSize({width:390,height:844});await mobile.waitForTimeout(100);
+for(const selector of ['#stick','[data-control=TRIANGLE]','[data-control=R2]','#connectOpen']){
+ const r=await mobile.locator(selector).boundingBox();assert(r&&r.x>=0&&r.y>=0&&r.x+r.width<=391&&r.y+r.height<=845,selector+' remains usable in portrait');
+}
+assert.equal(await mobile.locator('body').evaluate(el=>getComputedStyle(el.querySelector('.app'),':after').content),'none','portrait never blocks the controller with a rotation screen');
+if(process.env.CAPTURE_DIR)await mobile.screenshot({path:process.env.CAPTURE_DIR+'/controller-portrait.png'});
+await phone.close();
 assert.deepEqual(errors,[]);console.log('CONTROLLER_BROWSER_OK: gamepad-only page, on-screen-menu commands, directions, screen pointer, touchpad click, text entry, driving recovery and disconnect');}finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1});

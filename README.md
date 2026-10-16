@@ -1,3 +1,5 @@
+The Android APK now includes the controller, styles and PeerJS locally. It opens without loading the Pages site; pairing with another screen still needs an internet connection. Portrait and landscape layouts are both supported. The **Android APK ↓** button at the top of the web controller downloads the installable file directly.
+
 # Nottingham City Phone Controller
 
 [Open the web controller](https://cyberokasha-dev.github.io/nottingham-city-phone-controller/) · [Download Android APK](https://github.com/cyberokasha-dev/nottingham-city-phone-controller/releases/latest/download/Nottingham-City-Controller.apk) · [All APK releases](https://github.com/cyberokasha-dev/nottingham-city-phone-controller/releases)
